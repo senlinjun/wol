@@ -10,5 +10,6 @@ while True:
         command = msg[9:]
         print("Executing command:", command)
         os.system(command)
+        msg.send(b"Command executed.\n")
 
     c.close()
