@@ -635,8 +635,7 @@
             </div>
 
             <div class="btn-row">
-                <button class="btn btn-success btn-full" id="btnLaunch" disabled>⚡ 开机</button>
-                <button class="btn btn-danger btn-full" id="btnShutdown" disabled>⏻ 关机</button>
+                <button class="btn btn-success btn-full" id="btnLaunch">⚡ 开机</button>
             </div>
         </div>
     </div>
@@ -668,7 +667,6 @@
             const $systemTriggerPlaceholder = document.getElementById('systemTriggerPlaceholder');
             const $systemTriggerName = document.getElementById('systemTriggerName');
             const $btnLaunch = document.getElementById('btnLaunch');
-            const $btnShutdown = document.getElementById('btnShutdown');
             const $btnAddSystem = document.getElementById('btnAddSystem');
             const $btnDeleteSystem = document.getElementById('btnDeleteSystem');
             const $toastContainer = document.getElementById('toastContainer');
@@ -731,15 +729,7 @@
                 return data; // state === 0
             }
 
-            // SHA-256 哈希
-            async function sha256(str) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(str);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-
-            // 登录（特殊处理，因尚未有 token）
+            // 登录（直接发送明文密码）
             $loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const username = document.getElementById('username').value.trim();
@@ -808,8 +798,9 @@
                     currentInstanceId = null;
                     systems = []; selectedSystem = null; currentStateOs = null;
                     updateSystemDropdownUI(); updateStatusDisplayUI();
-                    $btnLaunch.disabled = $btnShutdown.disabled = true;
-                    $btnAddSystem.disabled = $btnDeleteSystem.disabled = true;
+                    $btnLaunch.disabled = false;
+                    $btnAddSystem.disabled = true;
+                    $btnDeleteSystem.disabled = true;
                     return;
                 }
                 if (newId !== currentInstanceId) {
@@ -818,7 +809,7 @@
                     systems = [];
                     currentStateOs = null;
                     updateSystemDropdownUI();
-                    $btnLaunch.disabled = $btnShutdown.disabled = true;
+                    $btnLaunch.disabled = false;
                     await Promise.all([loadSystems(), refreshInstanceState()]);
                 }
             }
@@ -869,7 +860,7 @@
                 }
             });
 
-            // 系统列表加载
+            // 加载系统列表
             async function loadSystems() {
                 if (!currentInstanceId) return;
                 try {
@@ -884,8 +875,6 @@
                     selectedSystem = null;
                 }
                 updateSystemDropdownUI();
-                updateLaunchButtonState();
-                // 控制添加/删除系统按钮状态
                 $btnAddSystem.disabled = !currentInstanceId;
                 $btnDeleteSystem.disabled = !currentInstanceId || systems.length === 0;
             }
@@ -920,19 +909,19 @@
                 }
             }
 
-            function selectSystem(os) { selectedSystem = os; updateTriggerDisplay(); updateSystemDropdownUI(); updateLaunchButtonState(); }
+            function selectSystem(os) { selectedSystem = os; updateTriggerDisplay(); updateSystemDropdownUI(); }
             function openSystemDropdown() { if (currentInstanceId && systems.length) { $systemDropdownMenu.classList.add('open'); $systemDropdownTrigger.classList.add('active'); isSystemDropdownOpen = true; } }
             function closeSystemDropdown() { $systemDropdownMenu.classList.remove('open'); $systemDropdownTrigger.classList.remove('active'); isSystemDropdownOpen = false; }
             $systemDropdownTrigger.addEventListener('click', (e) => { e.stopPropagation(); isSystemDropdownOpen ? closeSystemDropdown() : openSystemDropdown(); });
             document.addEventListener('click', () => { if (isSystemDropdownOpen) closeSystemDropdown(); });
 
-            // 添加系统
+            // 添加系统（增加 order 参数提示）
             $btnAddSystem.addEventListener('click', async () => {
                 if (!currentInstanceId) return;
                 const name = prompt('请输入系统名称（如 ubuntu、debian）');
                 if (!name || !name.trim()) return;
                 const orderStr = prompt('请输入该系统在 GRUB 中的顺序编号');
-                if (orderStr === null) return; // 用户取消
+                if (orderStr === null) return;
                 const order = parseInt(orderStr, 10);
                 if (isNaN(order)) {
                     showToast('请输入有效的顺序编号（数字）', 'error');
@@ -971,7 +960,7 @@
                 }
             });
 
-            // 实例状态刷新
+            // 刷新实例状态
             async function refreshInstanceState() {
                 if (!currentInstanceId) return;
                 try {
@@ -986,13 +975,10 @@
                     updateTriggerDisplay();
                     updateSystemDropdownUI();
                 }
-                updateLaunchButtonState();
-                updateShutdownButtonState();
             }
 
             function updateStatusDisplayUI() {
                 $statusIndicator.className = 'status-indicator';
-                // 移除旧的状态文本附加元素
                 const oldInfo = document.querySelector('.status-info');
                 if (oldInfo) oldInfo.remove();
                 if (!currentInstanceId) {
@@ -1018,18 +1004,12 @@
                 }
             }
 
-            function updateLaunchButtonState() {
-                const running = currentStateOs && currentStateOs !== -1;
-                $btnLaunch.disabled = !currentInstanceId || running || !selectedSystem;
-            }
-            function updateShutdownButtonState() {
-                const running = currentStateOs && currentStateOs !== -1;
-                $btnShutdown.disabled = !currentInstanceId || !running;
-            }
-
-            // 开机
+            // 开机（仅临时禁用防重复）
             $btnLaunch.addEventListener('click', async () => {
-                if (!currentInstanceId || !selectedSystem) return;
+                if (!currentInstanceId || !selectedSystem) {
+                    showToast('请先选择实例和系统', 'error');
+                    return;
+                }
                 $btnLaunch.disabled = true;
                 try {
                     await apiRequest(`/api/setsystem/${currentInstanceId}`, {
@@ -1042,22 +1022,7 @@
                 } catch (err) {
                     showToast('启动失败: ' + err.message, 'error');
                 } finally {
-                    updateLaunchButtonState();
-                }
-            });
-
-            // 关机
-            $btnShutdown.addEventListener('click', async () => {
-                if (!currentInstanceId) return;
-                $btnShutdown.disabled = true;
-                try {
-                    await apiRequest(`/api/shutdown/${currentInstanceId}`, { method: 'POST' });
-                    showToast('实例已关机', 'success');
-                    await refreshInstanceState();
-                } catch (err) {
-                    showToast('关机失败: ' + err.message, 'error');
-                } finally {
-                    updateShutdownButtonState();
+                    $btnLaunch.disabled = false;
                 }
             });
 
