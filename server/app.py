@@ -93,7 +93,7 @@ def getSystems(instance_id:str):
         return {"state":wrongToken}
     if instance_id not in data["instances"]:
         return {"state":errorState}
-    return {"state":okState,"systems":data["instances"][instance_id]["systems"]}
+    return {"state":okState,"systems":list(data["instances"][instance_id]["systems"].keys())}
 
 # 设置实例目标系统
 @app.route("/api/setsystem/<instance_id>",methods=["POST"])
