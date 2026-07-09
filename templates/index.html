@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实例管理器</title>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --text-muted: #999;
+            --border: #e5e5e7;
+            --border-focus: #0071e3;
+            --btn-primary-bg: #0071e3;
+            --btn-primary-text: #fff;
+            --btn-primary-hover: #0077ed;
+            --btn-danger-bg: #e34;
+            --btn-danger-text: #fff;
+            --btn-danger-hover: #d42;
+            --btn-success-bg: #30b54e;
+            --btn-success-text: #fff;
+            --btn-success-hover: #2ca044;
+            --btn-ghost-bg: transparent;
+            --btn-ghost-text: #1d1d1f;
+            --btn-ghost-hover: #f0f0f2;
+            --btn-ghost-border: #c7c7cc;
+            --input-bg: #fff;
+            --input-border: #c7c7cc;
+            --input-focus-border: #0071e3;
+            --input-focus-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+            --dropdown-bg: #fff;
+            --dropdown-hover: #f5f5f7;
+            --dropdown-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --status-running: #30b54e;
+            --status-stopped: #999;
+            --status-unknown: #f0a030;
+            --toast-bg: #1d1d1f;
+            --toast-text: #fff;
+            --logo-bg: #f5f5f7;
+            --section-divider: #f0f0f2;
+        }
+
+        [data-theme="dark"] {
+            --bg: #1c1c1e;
+            --card-bg: #2c2c2e;
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1a6;
+            --text-muted: #6e6e73;
+            --border: #3a3a3c;
+            --border-focus: #4da3ff;
+            --btn-primary-bg: #4da3ff;
+            --btn-primary-text: #000;
+            --btn-primary-hover: #5eb0ff;
+            --btn-danger-bg: #e34;
+            --btn-danger-text: #fff;
+            --btn-danger-hover: #f54;
+            --btn-success-bg: #30b54e;
+            --btn-success-text: #fff;
+            --btn-success-hover: #3cc95a;
+            --btn-ghost-bg: transparent;
+            --btn-ghost-text: #f5f5f7;
+            --btn-ghost-hover: #3a3a3c;
+            --btn-ghost-border: #5a5a5e;
+            --input-bg: #1c1c1e;
+            --input-border: #5a5a5e;
+            --input-focus-border: #4da3ff;
+            --input-focus-shadow: 0 0 0 3px rgba(77, 163, 255, 0.2);
+            --dropdown-bg: #2c2c2e;
+            --dropdown-hover: #3a3a3c;
+            --dropdown-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --status-running: #30b54e;
+            --status-stopped: #6e6e73;
+            --status-unknown: #f0a030;
+            --toast-bg: #3a3a3c;
+            --toast-text: #f5f5f7;
+            --logo-bg: #3a3a3c;
+            --section-divider: #3a3a3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-title .icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: var(--btn-primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid var(--btn-ghost-border);
+            background: var(--btn-ghost-bg);
+            color: var(--btn-ghost-text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card-section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: var(--input-focus-shadow);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-row>* {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-primary {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: var(--btn-primary-hover);
+        }
+
+        .btn-danger {
+            background: var(--btn-danger-bg);
+            color: var(--btn-danger-text);
+            font-weight: 600;
+        }
+
+        .btn-danger:hover {
+            background: var(--btn-danger-hover);
+        }
+
+        .btn-success {
+            background: var(--btn-success-bg);
+            color: var(--btn-success-text);
+            font-weight: 600;
+        }
+
+        .btn-success:hover {
+            background: var(--btn-success-hover);
+        }
+
+        .btn-ghost {
+            background: var(--btn-ghost-bg);
+            color: var(--btn-ghost-text);
+            border: 1.5px solid var(--btn-ghost-border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--btn-ghost-hover);
+        }
+
+        .btn-sm {
+            padding: 7px 13px;
+            font-size: 0.82rem;
+            border-radius: 8px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .instance-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .instance-selector select {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23999'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+            user-select: none;
+        }
+
+        .custom-dropdown-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            min-height: 44px;
+        }
+
+        .custom-dropdown-trigger:hover {
+            border-color: var(--text-muted);
+        }
+
+        .custom-dropdown-trigger.active {
+            border-color: var(--input-focus-border);
+            box-shadow: var(--input-focus-shadow);
+        }
+
+        .custom-dropdown-trigger .placeholder {
+            color: var(--text-muted);
+        }
+
+        .custom-dropdown-trigger .arrow {
+            margin-left: auto;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .custom-dropdown-trigger.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--dropdown-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--dropdown-shadow);
+            z-index: 100;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+            flex-direction: column;
+            padding: 4px;
+        }
+
+        .custom-dropdown-menu.open {
+            display: flex;
+        }
+
+        .custom-dropdown-option {
+            padding: 10px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+
+        .custom-dropdown-option:hover {
+            background: var(--dropdown-hover);
+        }
+
+        .custom-dropdown-option.selected {
+            background: var(--dropdown-hover);
+            font-weight: 600;
+        }
+
+        .status-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: var(--logo-bg);
+            border: 1px solid var(--border);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.running {
+            background: var(--status-running);
+            box-shadow: 0 0 8px rgba(48, 181, 78, 0.5);
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-indicator.stopped {
+            background: var(--status-stopped);
+        }
+
+        .status-indicator.unknown {
+            background: var(--status-unknown);
+            animation: pulse-amber 2s infinite;
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                box-shadow: 0 0 4px rgba(48, 181, 78, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 14px rgba(48, 181, 78, 0.7);
+            }
+        }
+
+        @keyframes pulse-amber {
+
+            0%,
+            100% {
+                box-shadow: 0 0 4px rgba(240, 160, 48, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 14px rgba(240, 160, 48, 0.7);
+            }
+        }
+
+        .status-text {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--section-divider);
+            margin: 2px 0;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 10px;
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            animation: slideIn 0.3s, fadeOut 0.3s 2.7s forwards;
+            pointer-events: auto;
+            max-width: 380px;
+        }
+
+        .toast.error {
+            border-left: 4px solid #e34;
+        }
+
+        .toast.success {
+            border-left: 4px solid #30b54e;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.35s, opacity 0.3s;
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 300px;
+            opacity: 1;
+        }
+
+        .create-form-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 10px;
+            background: var(--logo-bg);
+            border: 1px dashed var(--border);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <div class="app-container">
+        <header class="app-header">
+            <div class="app-title"><span class="icon">🖥️</span>实例管理器</div>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+        </header>
+
+        <!-- 登录卡片 -->
+        <div class="card" id="loginCard">
+            <div class="card-section-label">登录</div>
+            <form id="loginForm" autocomplete="off">
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" class="form-input" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="loginBtn">登 录</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 主面板（登录后显示） -->
+        <div class="card" id="mainPanel" style="display:none;">
+            <div class="card-section-label">实例</div>
+            <div class="instance-selector">
+                <select id="instanceSelect">
+                    <option value="">-- 请选择实例 --</option>
+                </select>
+                <button class="btn btn-ghost btn-sm" id="btnCreateToggle">＋ 创建</button>
+                <button class="btn btn-ghost btn-sm" id="btnDeleteInstance"
+                    style="color:var(--btn-danger-bg);border-color:var(--btn-danger-bg);">🗑</button>
+            </div>
+
+            <div class="collapsible-content" id="createFormCollapse">
+                <div class="create-form-inner">
+                    <div class="form-row">
+                        <div class="form-group"><label for="newName">名称</label><input type="text" id="newName"
+                                class="form-input" placeholder="实例名称"></div>
+                        <div class="form-group"><label for="newMac">MAC 地址</label><input type="text" id="newMac"
+                                class="form-input" placeholder="XX:XX:XX:XX:XX:XX"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="newIp">IP 地址 (可选)</label><input type="text" id="newIp"
+                                class="form-input" placeholder="留空或输入IP"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary btn-sm" id="btnCreateConfirm">确认创建</button>
+                        <button class="btn btn-ghost btn-sm" id="btnCreateCancel">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+            <div class="card-section-label">当前状态</div>
+            <div class="status-display" id="statusDisplay">
+                <span class="status-indicator unknown" id="statusIndicator"></span>
+                <span class="status-text" id="statusText">请选择实例</span>
+            </div>
+
+            <div class="card-section-label">选择系统</div>
+            <div class="custom-dropdown" id="systemDropdown">
+                <div class="custom-dropdown-trigger" id="systemDropdownTrigger">
+                    <span class="placeholder" id="systemTriggerPlaceholder">请先选择实例</span>
+                    <span id="systemTriggerName" style="display:none;"></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="custom-dropdown-menu" id="systemDropdownMenu"></div>
+            </div>
+            <div class="btn-row" style="margin-top: 4px;">
+                <button class="btn btn-ghost btn-sm" id="btnAddSystem">＋ 添加系统</button>
+                <button class="btn btn-ghost btn-sm" id="btnDeleteSystem"
+                    style="color:var(--btn-danger-bg);border-color:var(--btn-danger-bg);">删除系统</button>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-success btn-full" id="btnLaunch" disabled>⚡ 开机</button>
+                <button class="btn btn-danger btn-full" id="btnShutdown" disabled>⏻ 关机</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function () {
+            // DOM 元素
+            const $themeToggle = document.getElementById('themeToggle');
+            const $loginCard = document.getElementById('loginCard');
+            const $loginForm = document.getElementById('loginForm');
+            const $loginBtn = document.getElementById('loginBtn');
+            const $mainPanel = document.getElementById('mainPanel');
+            const $instanceSelect = document.getElementById('instanceSelect');
+            const $btnCreateToggle = document.getElementById('btnCreateToggle');
+            const $btnDeleteInstance = document.getElementById('btnDeleteInstance');
+            const $createFormCollapse = document.getElementById('createFormCollapse');
+            const $btnCreateConfirm = document.getElementById('btnCreateConfirm');
+            const $btnCreateCancel = document.getElementById('btnCreateCancel');
+            const $newName = document.getElementById('newName');
+            const $newMac = document.getElementById('newMac');
+            const $newIp = document.getElementById('newIp');
+            const $statusIndicator = document.getElementById('statusIndicator');
+            const $statusText = document.getElementById('statusText');
+            const $systemDropdown = document.getElementById('systemDropdown');
+            const $systemDropdownTrigger = document.getElementById('systemDropdownTrigger');
+            const $systemDropdownMenu = document.getElementById('systemDropdownMenu');
+            const $systemTriggerPlaceholder = document.getElementById('systemTriggerPlaceholder');
+            const $systemTriggerName = document.getElementById('systemTriggerName');
+            const $btnLaunch = document.getElementById('btnLaunch');
+            const $btnShutdown = document.getElementById('btnShutdown');
+            const $btnAddSystem = document.getElementById('btnAddSystem');
+            const $btnDeleteSystem = document.getElementById('btnDeleteSystem');
+            const $toastContainer = document.getElementById('toastContainer');
+
+            // 状态
+            let jwtToken = null;
+            let instances = {};
+            let currentInstanceId = null;
+            let systems = [];
+            let selectedSystem = null;
+            let currentStateOs = null;
+            let isSystemDropdownOpen = false;
+
+            // 主题
+            const getStoredTheme = () => localStorage.getItem('theme') || (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            const applyTheme = (theme) => {
+                document.body.setAttribute('data-theme', theme);
+                $themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+                localStorage.setItem('theme', theme);
+            };
+            $themeToggle.addEventListener('click', () => applyTheme(document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+            applyTheme(getStoredTheme());
+
+            // Toast
+            function showToast(msg, type = '') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = msg;
+                $toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 3100);
+            }
+
+            // 登出
+            function logout(reason = '登录已过期，请重新登录') {
+                jwtToken = null;
+                instances = {};
+                currentInstanceId = null;
+                systems = [];
+                selectedSystem = null;
+                currentStateOs = null;
+                $mainPanel.style.display = 'none';
+                $loginCard.style.display = 'flex';
+                $loginForm.reset();
+                showToast(reason, 'error');
+            }
+
+            // 统一 API 请求（自动处理 JWT 和 state 字段）
+            async function apiRequest(url, options = {}) {
+                const headers = { 'Content-Type': 'application/json' };
+                if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+                const resp = await fetch(url, { ...options, headers });
+                const data = await resp.json();
+                if (data.state === 2) {
+                    logout();
+                    throw new Error('Token 已失效');
+                }
+                if (data.state === 1) {
+                    throw new Error(data.message || data.error || '操作失败');
+                }
+                return data; // state === 0
+            }
+
+            // SHA-256 哈希
+            async function sha256(str) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            // 登录（特殊处理，因尚未有 token）
+            $loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                if (!username || !password) return showToast('请输入用户名和密码', 'error');
+                $loginBtn.disabled = true;
+                $loginBtn.innerHTML = '<span class="spinner"></span> 登录中...';
+                try {
+                    const hashedPassword = await sha256(password);
+                    const resp = await fetch('/api/auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password: hashedPassword })
+                    });
+                    const data = await resp.json();
+                    if (data.state !== 0) throw new Error(data.message || '登录失败');
+                    if (!data.token) throw new Error('登录成功但未返回 token');
+                    jwtToken = data.token;
+                    showToast('登录成功', 'success');
+                    $loginCard.style.display = 'none';
+                    $mainPanel.style.display = 'flex';
+                    await loadInstances();
+                    if (Object.keys(instances).length > 0) {
+                        const firstId = Object.keys(instances)[0];
+                        $instanceSelect.value = firstId;
+                        await handleInstanceChange();
+                    }
+                } catch (err) {
+                    showToast('登录失败: ' + err.message, 'error');
+                } finally {
+                    $loginBtn.disabled = false;
+                    $loginBtn.textContent = '登 录';
+                }
+            });
+
+            // 加载实例列表
+            async function loadInstances() {
+                const data = await apiRequest('/api/getinstances');
+                instances = (data && data.instances && typeof data.instances === 'object') ? data.instances : {};
+                renderInstanceSelect();
+            }
+
+            function renderInstanceSelect() {
+                const cur = $instanceSelect.value;
+                $instanceSelect.innerHTML = '<option value="">-- 请选择实例 --</option>';
+                const ids = Object.keys(instances);
+                if (ids.length === 0) {
+                    $instanceSelect.innerHTML += '<option value="" disabled>暂无实例</option>';
+                } else {
+                    ids.forEach(id => {
+                        const opt = document.createElement('option');
+                        opt.value = id;
+                        opt.textContent = instances[id] || id;
+                        $instanceSelect.appendChild(opt);
+                    });
+                }
+                if (cur && instances[cur]) $instanceSelect.value = cur;
+                else if (ids.length > 0) $instanceSelect.value = ids[0];
+                if ($instanceSelect.value !== cur) handleInstanceChange();
+            }
+
+            $instanceSelect.addEventListener('change', handleInstanceChange);
+
+            async function handleInstanceChange() {
+                const newId = $instanceSelect.value;
+                if (!newId) {
+                    currentInstanceId = null;
+                    systems = []; selectedSystem = null; currentStateOs = null;
+                    updateSystemDropdownUI(); updateStatusDisplayUI();
+                    $btnLaunch.disabled = $btnShutdown.disabled = true;
+                    $btnAddSystem.disabled = $btnDeleteSystem.disabled = true;
+                    return;
+                }
+                if (newId !== currentInstanceId) {
+                    currentInstanceId = newId;
+                    selectedSystem = null;
+                    systems = [];
+                    currentStateOs = null;
+                    updateSystemDropdownUI();
+                    $btnLaunch.disabled = $btnShutdown.disabled = true;
+                    await Promise.all([loadSystems(), refreshInstanceState()]);
+                }
+            }
+
+            // 创建实例
+            $btnCreateToggle.addEventListener('click', () => $createFormCollapse.classList.toggle('expanded'));
+            $btnCreateCancel.addEventListener('click', () => {
+                $createFormCollapse.classList.remove('expanded');
+                $newName.value = $newMac.value = $newIp.value = '';
+            });
+            $btnCreateConfirm.addEventListener('click', async () => {
+                const name = $newName.value.trim();
+                const mac = $newMac.value.trim();
+                const ip = $newIp.value.trim();
+                if (!name || !mac) return showToast('名称和 MAC 地址不能为空', 'error');
+                $btnCreateConfirm.disabled = true;
+                try {
+                    await apiRequest('/api/createinstance', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, mac, ip: ip || undefined })
+                    });
+                    showToast('实例创建成功', 'success');
+                    $createFormCollapse.classList.remove('expanded');
+                    $newName.value = $newMac.value = $newIp.value = '';
+                    await loadInstances();
+                } catch (err) {
+                    showToast('创建失败: ' + err.message, 'error');
+                } finally {
+                    $btnCreateConfirm.disabled = false;
+                }
+            });
+
+            // 删除实例
+            $btnDeleteInstance.addEventListener('click', async () => {
+                if (!currentInstanceId) return showToast('请先选择实例', 'error');
+                if (!confirm(`确定删除实例「${instances[currentInstanceId] || currentInstanceId}」吗？`)) return;
+                try {
+                    await apiRequest(`/api/deleteinstance/${currentInstanceId}`, { method: 'POST' });
+                    showToast('实例已删除', 'success');
+                    currentInstanceId = null;
+                    await loadInstances();
+                    if (Object.keys(instances).length > 0) {
+                        $instanceSelect.value = Object.keys(instances)[0];
+                        await handleInstanceChange();
+                    }
+                } catch (err) {
+                    showToast('删除失败: ' + err.message, 'error');
+                }
+            });
+
+            // 系统列表加载
+            async function loadSystems() {
+                if (!currentInstanceId) return;
+                try {
+                    const data = await apiRequest(`/api/getsystems/${currentInstanceId}`);
+                    systems = Array.isArray(data.systems) ? data.systems : [];
+                } catch {
+                    systems = [];
+                }
+                if (currentStateOs && currentStateOs !== -1 && systems.includes(currentStateOs)) {
+                    selectedSystem = currentStateOs;
+                } else if (!systems.includes(selectedSystem)) {
+                    selectedSystem = null;
+                }
+                updateSystemDropdownUI();
+                updateLaunchButtonState();
+                // 控制添加/删除系统按钮状态
+                $btnAddSystem.disabled = !currentInstanceId;
+                $btnDeleteSystem.disabled = !currentInstanceId || systems.length === 0;
+            }
+
+            function updateSystemDropdownUI() {
+                $systemDropdownMenu.innerHTML = '';
+                if (!currentInstanceId || systems.length === 0) {
+                    $systemTriggerPlaceholder.style.display = 'inline';
+                    $systemTriggerName.style.display = 'none';
+                    $systemTriggerPlaceholder.textContent = currentInstanceId ? '暂无可用系统' : '请先选择实例';
+                    return;
+                }
+                systems.forEach(os => {
+                    const opt = document.createElement('div');
+                    opt.className = `custom-dropdown-option${os === selectedSystem ? ' selected' : ''}`;
+                    opt.textContent = os;
+                    opt.addEventListener('click', () => { selectSystem(os); closeSystemDropdown(); });
+                    $systemDropdownMenu.appendChild(opt);
+                });
+                updateTriggerDisplay();
+            }
+
+            function updateTriggerDisplay() {
+                if (!selectedSystem) {
+                    $systemTriggerPlaceholder.style.display = 'inline';
+                    $systemTriggerName.style.display = 'none';
+                    $systemTriggerPlaceholder.textContent = '请选择系统';
+                } else {
+                    $systemTriggerPlaceholder.style.display = 'none';
+                    $systemTriggerName.style.display = 'inline';
+                    $systemTriggerName.textContent = selectedSystem;
+                }
+            }
+
+            function selectSystem(os) { selectedSystem = os; updateTriggerDisplay(); updateSystemDropdownUI(); updateLaunchButtonState(); }
+            function openSystemDropdown() { if (currentInstanceId && systems.length) { $systemDropdownMenu.classList.add('open'); $systemDropdownTrigger.classList.add('active'); isSystemDropdownOpen = true; } }
+            function closeSystemDropdown() { $systemDropdownMenu.classList.remove('open'); $systemDropdownTrigger.classList.remove('active'); isSystemDropdownOpen = false; }
+            $systemDropdownTrigger.addEventListener('click', (e) => { e.stopPropagation(); isSystemDropdownOpen ? closeSystemDropdown() : openSystemDropdown(); });
+            document.addEventListener('click', () => { if (isSystemDropdownOpen) closeSystemDropdown(); });
+
+            // 添加系统
+            $btnAddSystem.addEventListener('click', async () => {
+                if (!currentInstanceId) return;
+                const name = prompt('请输入系统名称（如 ubuntu、debian）');
+                if (!name || !name.trim()) return;
+                try {
+                    await apiRequest(`/api/createsystem/${currentInstanceId}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ system_name: name.trim() })
+                    });
+                    showToast('系统添加成功', 'success');
+                    await loadSystems();
+                } catch (err) {
+                    showToast('添加系统失败: ' + err.message, 'error');
+                }
+            });
+
+            // 删除系统
+            $btnDeleteSystem.addEventListener('click', async () => {
+                if (!currentInstanceId) return;
+                if (!selectedSystem) {
+                    showToast('请先在列表中选择要删除的系统', 'error');
+                    return;
+                }
+                if (!confirm(`确定删除系统「${selectedSystem}」吗？`)) return;
+                try {
+                    await apiRequest(`/api/deleteSystem/${currentInstanceId}/${encodeURIComponent(selectedSystem)}`, {
+                        method: 'POST'
+                    });
+                    showToast('系统已删除', 'success');
+                    selectedSystem = null;
+                    await loadSystems();
+                    updateTriggerDisplay();
+                } catch (err) {
+                    showToast('删除系统失败: ' + err.message, 'error');
+                }
+            });
+
+            // 实例状态刷新
+            async function refreshInstanceState() {
+                if (!currentInstanceId) return;
+                try {
+                    const data = await apiRequest(`/api/getinstancestate/${currentInstanceId}`);
+                    currentStateOs = data?.os;
+                } catch {
+                    currentStateOs = null;
+                }
+                updateStatusDisplayUI();
+                if (currentStateOs && currentStateOs !== -1 && systems.includes(currentStateOs)) {
+                    selectedSystem = currentStateOs;
+                    updateTriggerDisplay();
+                    updateSystemDropdownUI();
+                }
+                updateLaunchButtonState();
+                updateShutdownButtonState();
+            }
+
+            function updateStatusDisplayUI() {
+                $statusIndicator.className = 'status-indicator';
+                // 移除旧的状态文本附加元素
+                const oldInfo = document.querySelector('.status-info');
+                if (oldInfo) oldInfo.remove();
+                if (!currentInstanceId) {
+                    $statusIndicator.classList.add('unknown');
+                    $statusText.textContent = '请选择实例';
+                    return;
+                }
+                if (currentStateOs === null || currentStateOs === undefined) {
+                    $statusIndicator.classList.add('unknown');
+                    $statusText.textContent = '状态未知';
+                } else if (currentStateOs === -1) {
+                    $statusIndicator.classList.add('stopped');
+                    $statusText.textContent = '已关机';
+                } else {
+                    $statusIndicator.classList.add('running');
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'status-info';
+                    const span = document.createElement('span');
+                    span.className = 'status-text';
+                    span.textContent = '运行中 · ' + currentStateOs;
+                    infoDiv.appendChild(span);
+                    document.getElementById('statusDisplay').appendChild(infoDiv);
+                }
+            }
+
+            function updateLaunchButtonState() {
+                const running = currentStateOs && currentStateOs !== -1;
+                $btnLaunch.disabled = !currentInstanceId || running || !selectedSystem;
+            }
+            function updateShutdownButtonState() {
+                const running = currentStateOs && currentStateOs !== -1;
+                $btnShutdown.disabled = !currentInstanceId || !running;
+            }
+
+            // 开机
+            $btnLaunch.addEventListener('click', async () => {
+                if (!currentInstanceId || !selectedSystem) return;
+                $btnLaunch.disabled = true;
+                try {
+                    await apiRequest(`/api/setsystem/${currentInstanceId}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ os: selectedSystem })
+                    });
+                    await apiRequest(`/api/launch/${currentInstanceId}`, { method: 'POST' });
+                    showToast('实例已启动', 'success');
+                    await refreshInstanceState();
+                } catch (err) {
+                    showToast('启动失败: ' + err.message, 'error');
+                } finally {
+                    updateLaunchButtonState();
+                }
+            });
+
+            // 关机
+            $btnShutdown.addEventListener('click', async () => {
+                if (!currentInstanceId) return;
+                $btnShutdown.disabled = true;
+                try {
+                    await apiRequest(`/api/shutdown/${currentInstanceId}`, { method: 'POST' });
+                    showToast('实例已关机', 'success');
+                    await refreshInstanceState();
+                } catch (err) {
+                    showToast('关机失败: ' + err.message, 'error');
+                } finally {
+                    updateShutdownButtonState();
+                }
+            });
+
+            // 每30秒自动刷新状态
+            setInterval(() => {
+                if (jwtToken && currentInstanceId) refreshInstanceState().catch(() => { });
+            }, 30000);
+        })();
+    </script>
+</body>
+
+</html>
