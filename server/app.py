@@ -105,7 +105,7 @@ def setSystem(instance_id:str):
     os = flask.request.json.get("os")
     if os not in data["instances"][instance_id]["systems"]:
         return {"state":errorState}
-    target[instance_id] = data["instances"][instance_id]["systems"]["os"]
+    target[instance_id] = data["instances"][instance_id]["systems"][os]
     return {"state":okState}
 
 # 唤醒实例
