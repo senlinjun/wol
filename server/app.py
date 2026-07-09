@@ -14,14 +14,18 @@ with open("config.json","r") as f:
     data = json.load(f)
 
 def checkToken():
+    out_of_date_token = []
     for token in tokens:
         payload = jwt.decode(token,SECRET_KEY,algorithms="HS256")
         if datetime.utcfromtimestamp(payload["exp"]) < datetime.utcnow():
-            tokens.remove(token)
+            out_of_date_token.append(token)
+    for token in out_of_date_token:
+        tokens.remove(token)
     token = flask.request.headers.get("Authorization").replace("Bearer ","")
     if token not in tokens:
         print("token not in list")
         return False
+    return True
 
 def saveConfig():
     with open("config.json","w",encoding="utf-8") as f:
