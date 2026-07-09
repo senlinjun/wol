@@ -14,19 +14,13 @@ with open("config.json","r") as f:
     data = json.load(f)
 
 def checkToken():
-    token = flask.request.headers.get("Authorization").replace("Bearer ","")
-    if token not in tokens:
-        print("token not in list")
-        return False
-    try:
+    for token in tokens:
         payload = jwt.decode(token,SECRET_KEY,algorithms="HS256")
         if datetime.utcfromtimestamp(payload["exp"]) < datetime.utcnow():
             tokens.remove(token)
-            print("token out of date")
-            return False
-        return True
-    except jwt.InvalidTokenError:
-        print("invalid token")
+    token = flask.request.headers.get("Authorization").replace("Bearer ","")
+    if token not in tokens:
+        print("token not in list")
         return False
 
 def saveConfig():
@@ -171,5 +165,6 @@ def deleteSystem(instance_id):
 def getTargetSystem(instance_id):
     if instance_id not in data["instances"]:
         return {"state":errorState}
+    target.pop(instance_id)
     return {"state":okState,"order":target[instance_id]}
     
