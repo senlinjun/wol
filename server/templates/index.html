@@ -791,7 +791,7 @@
                     ids.forEach(id => {
                         const opt = document.createElement('option');
                         opt.value = id;
-                        opt.textContent = instances[id] || id;
+                        opt.textContent = `${instances[id] || id} (${id})`;
                         $instanceSelect.appendChild(opt);
                     });
                 }
@@ -931,10 +931,17 @@
                 if (!currentInstanceId) return;
                 const name = prompt('请输入系统名称（如 ubuntu、debian）');
                 if (!name || !name.trim()) return;
+                const orderStr = prompt('请输入该系统在 GRUB 中的顺序编号');
+                if (orderStr === null) return; // 用户取消
+                const order = parseInt(orderStr, 10);
+                if (isNaN(order)) {
+                    showToast('请输入有效的顺序编号（数字）', 'error');
+                    return;
+                }
                 try {
-                    await apiRequest(`/api/createsystem/${currentInstanceId}`, {
+                    await apiRequest(`/api/addSystem/${currentInstanceId}`, {
                         method: 'POST',
-                        body: JSON.stringify({ system_name: name.trim() })
+                        body: JSON.stringify({ system_name: name.trim(), order })
                     });
                     showToast('系统添加成功', 'success');
                     await loadSystems();

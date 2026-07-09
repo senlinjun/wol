@@ -105,7 +105,7 @@ def setSystem(instance_id:str):
     os = flask.request.json.get("os")
     if os not in data["instances"][instance_id]["systems"]:
         return {"state":errorState}
-    target[instance_id] = os
+    target[instance_id] = data["instances"][instance_id]["systems"]["os"]
     return {"state":okState}
 
 # 唤醒实例
@@ -145,9 +145,10 @@ def createSystem(instance_id):
     if instance_id not in data["instances"]:
         return {"state":errorState}
     system_name = flask.request.json.get("system_name")
+    order = flask.request.json.get("order")
     if system_name in data["instances"][instance_id]["systems"]:
         return {"state":errorState}
-    data["instances"][instance_id]["systems"].append(system_name)
+    data["instances"][instance_id]["systems"]["system_name"] = order
     saveConfig()
     return {"state":okState}
 
@@ -164,3 +165,11 @@ def deleteSystem(instance_id):
     data["instances"][instance_id]["systems"].remove(system_name)
     saveConfig()
     return {"state":okState}
+
+# 获取目标系统
+@app.route("/api/gettargetsystem/<instance_id>",methods=["GET"])
+def getTargetSystem(instance_id):
+    if instance_id not in data["instances"]:
+        return {"state":errorState}
+    return {"state":okState,"order":target[instance_id]}
+    
