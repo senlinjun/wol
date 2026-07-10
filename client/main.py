@@ -13,4 +13,4 @@ try:
             subprocess.run(f"sudo grub-reboot {target}",shell=True)
             subprocess.run("sudo reboot",shell=True)
 except Exception as e:
-    pass
+    print(f"ERROR: {e}")
