@@ -1,4 +1,4 @@
-import requests,json
+import requests,json,time
 import subprocess
 
 with open("config.json","r") as f:
@@ -8,8 +8,9 @@ flag = False
 attempt_times = 0
 while not flag and attempt_times < data["attempt"]:
     try:
-        res = requests.get(f"http://{data['server']}/api/gettargetsystem/{data['instance_id']}")
         attempt_times += 1
+        res = requests.get(f"http://{data['server']}/api/gettargetsystem/{data['instance_id']}")
+        res_data = res.json()
         flag = True
     except:
         print(f"Network is unreachable, retry in {data['attempt_second']}s({attempt_times})")
@@ -23,6 +24,10 @@ if flag:
             print(f"reboot to {target}")
             subprocess.run(f"sudo grub-reboot {target}",shell=True)
             subprocess.run("sudo reboot",shell=True)
+        else:
+            print("already in this target system")
+    else:
+        print("no target")
 else:
     print("Cannot connect to wol server")
 
