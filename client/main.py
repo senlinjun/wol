@@ -6,7 +6,7 @@ with open("config.json","r") as f:
 
 flag = False
 attempt_times = 0
-while not network_reachable and attempt_times < data["attempt"]:
+while not flag and attempt_times < data["attempt"]:
     try:
         res = requests.get(f"http://{data['server']}/api/gettargetsystem/{data['instance_id']}")
         attempt_times += 1
