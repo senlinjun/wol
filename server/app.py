@@ -169,6 +169,8 @@ def deleteSystem(instance_id):
 def getTargetSystem(instance_id):
     if instance_id not in data["instances"]:
         return {"state":errorState}
+    if instance_id not in target:
+        return {"state":errorState}
     order = target[instance_id]
     target.pop(instance_id)
     return {"state":okState,"order":order}
