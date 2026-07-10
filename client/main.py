@@ -12,6 +12,7 @@ while not network_reachable and attempt_times < data["attempt"]:
         attempt_times += 1
         flag = True
     except:
+        print(f"Network is unreachable, retry in {data['attempt_second']}s({attempt_times})")
         time.sleep(data["attempt_second"])
         pass
 
