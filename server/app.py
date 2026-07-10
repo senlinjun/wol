@@ -16,8 +16,9 @@ with open("config.json","r") as f:
 def checkToken():
     out_of_date_token = []
     for token in tokens:
-        payload = jwt.decode(token,SECRET_KEY,algorithms="HS256")
-        if datetime.utcfromtimestamp(payload["exp"]) < datetime.utcnow():
+        try:
+            payload = jwt.decode(token,SECRET_KEY,algorithms="HS256")
+        except jwt.DecodeError:
             out_of_date_token.append(token)
     for token in out_of_date_token:
         tokens.remove(token)
