@@ -10,7 +10,7 @@ try:
         target = res["order"]
         if target != data["order"]:
             print(f"reboot to {target}")
-            Popen(f"grub-reboot {target}",shell=True)
+            Popen(f"grub-reboot {target}")
             Popen("reboot")
 except Exception as e:
     pass
