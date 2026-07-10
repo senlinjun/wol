@@ -1,5 +1,5 @@
 import requests,json
-from subprocess import Popen
+import subprocess
 
 with open("config.json","r") as f:
     data = json.load(f)
@@ -10,7 +10,7 @@ try:
         target = res["order"]
         if target != data["order"]:
             print(f"reboot to {target}")
-            Popen(f"grub-reboot {target}")
-            Popen("reboot")
+            subprocess.run(f"sudo grub-reboot {target}",shell=True)
+            subprocess.run("sudo reboot",shell=True)
 except Exception as e:
     pass
