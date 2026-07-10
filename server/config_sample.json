@@ -1,5 +1,6 @@
 {
-    "username": "senlinjun",
+    "username": "username",
     "password": "password",
-    "instances": {}
+    "instances": {},
+    "SECRET_KEY": "xxx"
 }

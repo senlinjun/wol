@@ -3,7 +3,6 @@ import flask,json,jwt
 from datetime import datetime,timedelta
 
 app = flask.Flask(__name__)
-SECRET_KEY = "6550acc44f93f611270b414711fb6c06004603d60cb47f2b3910992c74396cce"
 tokens = []
 target = {}
 okState = 0
@@ -12,6 +11,7 @@ wrongToken = 2
 
 with open("config.json","r") as f:
     data = json.load(f)
+SECRET_KEY = data["SECRET_KEY"]
 
 def checkToken():
     out_of_date_token = []
