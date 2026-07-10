@@ -8,7 +8,7 @@ try:
     res = requests.get(f"http://{data['server']}/api/gettargetsystem/{data['instance_id']}").json()
     if res["state"] == 0:
         target = res["order"]
-        if target != data["instance_id"]:
+        if target != data["order"]:
             print(f"reboot to {target}")
             Popen(f"grub-reboot {target}",shell=True)
             Popen("reboot")
