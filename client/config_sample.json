@@ -1,5 +1,5 @@
 {
-    "server": "127.0.0.1",
+    "server": "127.0.0.1:5000",
     "instance_id": 0,
     "order": 0
 }
