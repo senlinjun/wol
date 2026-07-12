@@ -14,13 +14,14 @@ with open("config.json","r") as f:
 SECRET_KEY = data["SECRET_KEY"]
 
 def checkToken():
-    out_of_date_token = []
+    need_to_delete = []
     for token in tokens:
         try:
             payload = jwt.decode(token,SECRET_KEY,algorithms="HS256")
-        except jwt.DecodeError:
-            out_of_date_token.append(token)
-    for token in out_of_date_token:
+        except Exception as e:
+            print(f"Failed to decode token: {e}")
+            need_to_delete.append(token)
+    for token in need_to_delete:
         tokens.remove(token)
     token = flask.request.headers.get("Authorization").replace("Bearer ","")
     if token not in tokens:
